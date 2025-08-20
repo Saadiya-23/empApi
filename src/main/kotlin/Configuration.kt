@@ -5,20 +5,20 @@ import jakarta.validation.constraints.NotNull
 
 class AttendanceConfiguration : Configuration() {
     @JsonProperty("database")
-    @NotNull // <-- Changed here
+    @NotNull
     lateinit var databaseConfig: DatabaseConfiguration
 }
 
 class DatabaseConfiguration {
     @JsonProperty
-    @NotNull // <-- Changed here
+    @NotNull
     lateinit var url: String
 
     @JsonProperty
-    @NotNull // <-- Changed here
+    @NotNull
     lateinit var user: String
 
     @JsonProperty
-    @NotNull // <-- Changed here
+    @NotNull
     lateinit var password: String
 }

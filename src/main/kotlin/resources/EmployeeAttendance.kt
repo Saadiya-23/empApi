@@ -16,7 +16,7 @@ class EmployeeAttendance(
     private val manager: EmployeeManager
 
 ) {
-    // -------- Login ----------
+    //Login
     @POST
     @Path("/login")
     fun login(req: LoginRequest): Response =
@@ -25,7 +25,7 @@ class EmployeeAttendance(
         else
             Response.status(Status.UNAUTHORIZED).entity(mapOf("error" to "Invalid Credentials")).build()
 
-    // -------- Employees ----------
+    //Employees
     @GET
     @Path("/employees")
     fun getAllEmployees(): List<Employee> = manager.getAllEmployees()
@@ -51,7 +51,17 @@ class EmployeeAttendance(
         }
     }
 
-    // -------- Attendance ----------
+    @DELETE
+    @Path("/employees/{empId}")
+    fun deleteEmployee(@PathParam("empId") empId: String): Response {
+        return if (manager.deleteEmployee(empId))
+            Response.ok(mapOf("message" to "Employee with ID $empId deleted successfully")).build()
+        else
+            Response.status(Status.NOT_FOUND)
+                .entity(mapOf("error" to "Employee ID does not exist")).build()
+    }
+
+    //Attendance
     @GET
     @Path("/attendance")
     fun listAllAttendance(): List<Attendance> = manager.listAllAttendance()

@@ -11,20 +11,24 @@ import java.time.LocalTime
 
 interface AttendanceDAO {
 
-    @SqlUpdate("""
+    @SqlUpdate(
+        """
         INSERT INTO attendances (emp_id, check_in_date, check_in_time)
         VALUES (:empId, :checkInDate, :checkInTime)
-    """)
+    """
+    )
     fun insertCheckIn(@BindBean attendance: Attendance): Boolean
 
-    @SqlUpdate("""
+    @SqlUpdate(
+        """
         UPDATE attendances
         SET check_out_time = :time,
             working_hours = (:time::time - check_in_time)
         WHERE emp_id = :empId
         AND check_in_date = :date
         AND check_out_time IS NULL
-    """)
+    """
+    )
     fun updateCheckOut(
         @Bind("empId") empId: String,
         @Bind("date") date: LocalDate,
@@ -43,13 +47,15 @@ interface AttendanceDAO {
     @SqlUpdate("DELETE FROM attendances WHERE emp_id = :empId")
     fun deleteByEmpId(@Bind("empId") empId: String): Boolean
 
-    @SqlQuery("""
+    @SqlQuery(
+        """
         SELECT emp_id, COALESCE(SUM(working_hours), INTERVAL '0') AS total
         FROM attendances
         WHERE check_in_date BETWEEN :from AND :to
         AND working_hours IS NOT NULL
         GROUP BY emp_id
         ORDER BY emp_id
-    """)
+    """
+    )
     fun workingHoursSummary(@Bind("from") from: LocalDate, @Bind("to") to: LocalDate): List<WorkingHoursSummary>
 }

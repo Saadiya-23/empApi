@@ -3,6 +3,21 @@ package model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
+
+enum class Department {
+    IT,
+    ADMIN,
+    CUSTOMER_SERVICE
+}
+
+enum class Role {
+    DEV,
+    QA,
+    HR,
+    MANAGER,
+    SUPPORT
+}
+
 data class Employee @JsonCreator constructor(
     @JsonProperty("id", required = false)
     var id: String? = null,
@@ -11,5 +26,11 @@ data class Employee @JsonCreator constructor(
     @JsonProperty("lastName")
     val lastName: String,
     @JsonProperty("password")
-    val password: String
+    val password: String,
+    @JsonProperty("role")
+    val role: Role,
+    @JsonProperty("dept")
+    val dept: Department,
+    @JsonProperty("reportingTo")
+    val reportingTo: String?
 )

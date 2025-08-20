@@ -16,6 +16,7 @@ class EmployeeManager(
     companion object{
         var nextEmpId:Int=100
     }
+
     fun addEmployee(employee: Employee): Boolean {
         errors = ""
         if (employee.firstName.isBlank()) errors += "First Name cannot be blank. "
@@ -51,12 +52,12 @@ class EmployeeManager(
         return date.isAfter(currDate) || (date == currDate && time.isAfter(currTime))
     }
 
-    fun checkIn(a: Attendance): Boolean {
+    fun checkIn(attendance: Attendance): Boolean {
         errors = ""
-        val empId = a.empId
+        val empId = attendance.empId
         if (empId.isNullOrBlank()) errors += "Employee Id missing. "
-        val date = a.checkInDate ?: LocalDate.now()
-        val time = a.checkInTime ?: LocalTime.now()
+        val date = attendance.checkInDate ?: LocalDate.now()
+        val time = attendance.checkInTime ?: LocalTime.now()
 
         if (empId != null && !isEmployeeExist(empId))
         errors += "Employee with ID $empId does not exist. "
@@ -67,9 +68,9 @@ class EmployeeManager(
 
         if (errors.isNotBlank()) return false
 
-        a.checkInDate = date
-        a.checkInTime = time
-        return attendanceDAO.insertCheckIn(a)
+        attendance.checkInDate = date
+        attendance.checkInTime = time
+        return attendanceDAO.insertCheckIn(attendance)
     }
 
     fun checkOut(empId: String?, checkInDate: LocalDate?, checkOutTime: LocalTime?): Boolean {
@@ -91,7 +92,7 @@ class EmployeeManager(
 
     fun listAttendanceByEmp(empId: String) = attendanceDAO.listByEmpId(empId)
 
-    fun workingHoursSummary(from: LocalDate, to: LocalDate): Map<String, String> {
+    fun workingHoursSummary(from: LocalDate, to: LocalDate): Map<String,String> {
         val summaryList = attendanceDAO.workingHoursSummary(from, to)
         return summaryList.associate { it.empId to it.total }
     }
