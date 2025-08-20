@@ -9,12 +9,13 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class EmployeeManager(
-    private val employeeDAO: EmployeeDAO = EmployeeDAO(),
-    private val attendanceDAO: AttendanceDAO = AttendanceDAO()
+    private val employeeDAO: EmployeeDAO,
+    private val attendanceDAO: AttendanceDAO
 ) {
     var errors: String = ""
-
-    // ---------------- Employees ----------------
+    companion object{
+        var nextEmpId:Int=100
+    }
     fun addEmployee(employee: Employee): Boolean {
         errors = ""
         if (employee.firstName.isBlank()) errors += "First Name cannot be blank. "
@@ -22,30 +23,32 @@ class EmployeeManager(
         if (employee.password.isBlank()) errors += "Password cannot be blank. "
         if (errors.isNotBlank()) return false
 
-        // Simple ID generator: PQ + 4 trailing millis digits (keep your style)
         if (employee.id.isNullOrBlank()) {
-            employee.id = "PQ" + System.currentTimeMillis().toString().takeLast(4)
+            employee.id = "PQ${nextEmpId++}"
         }
         return employeeDAO.insert(employee)
     }
 
     fun deleteEmployee(empId: String): Boolean {
-        // Attendance rows will be deleted by ON DELETE CASCADE if you set it.
         return employeeDAO.delete(empId)
     }
 
     fun getAllEmployees() = employeeDAO.findAll()
+
+    fun isEmployeeExist(empId:String) = employeeDAO.findById(empId) != null
 
     fun getEmployee(empId: String) = employeeDAO.findById(empId)
 
     fun validateLogin(req: LoginRequest) =
         employeeDAO.validateLogin(req.firstName, req.password)
 
-    // ---------------- Attendance ----------------
+
+
+
     private fun isFuture(date: LocalDate, time: LocalTime): Boolean {
-        val today = LocalDate.now()
-        val now = LocalTime.now()
-        return date.isAfter(today) || (date == today && time.isAfter(now))
+        val currDate = LocalDate.now()
+        val currTime= LocalTime.now()
+        return date.isAfter(currDate) || (date == currDate && time.isAfter(currTime))
     }
 
     fun checkIn(a: Attendance): Boolean {
@@ -54,6 +57,9 @@ class EmployeeManager(
         if (empId.isNullOrBlank()) errors += "Employee Id missing. "
         val date = a.checkInDate ?: LocalDate.now()
         val time = a.checkInTime ?: LocalTime.now()
+
+        if (empId != null && !isEmployeeExist(empId))
+        errors += "Employee with ID $empId does not exist. "
 
         if (isFuture(date, time)) errors += "Future date/time not allowed. "
         if (empId != null && attendanceDAO.hasActiveCheckIn(empId, date))
@@ -69,9 +75,15 @@ class EmployeeManager(
     fun checkOut(empId: String?, checkInDate: LocalDate?, checkOutTime: LocalTime?): Boolean {
         errors = ""
         val id = empId ?: run { errors = "Employee Id missing. "; return false }
+        if (!isEmployeeExist(empId))
+        errors += "Employee with ID $empId does not exist. "
         val date = checkInDate ?: LocalDate.now()
+        if (!attendanceDAO.hasActiveCheckIn(id, date)) {
+            errors += "No active check-in found for the day. "
+        }
         val time = checkOutTime ?: LocalTime.now()
         if (isFuture(date, time)) { errors = "Future date/time not allowed."; return false }
+        if (errors.isNotBlank()) return false
         return attendanceDAO.updateCheckOut(id, date, time)
     }
 
@@ -79,6 +91,8 @@ class EmployeeManager(
 
     fun listAttendanceByEmp(empId: String) = attendanceDAO.listByEmpId(empId)
 
-    fun workingHoursSummary(from: LocalDate, to: LocalDate) =
-        attendanceDAO.workingHoursSummary(from, to)
+    fun workingHoursSummary(from: LocalDate, to: LocalDate): Map<String, String> {
+        val summaryList = attendanceDAO.workingHoursSummary(from, to)
+        return summaryList.associate { it.empId to it.total }
+    }
 }

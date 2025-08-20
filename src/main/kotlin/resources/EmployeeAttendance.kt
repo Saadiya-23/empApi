@@ -13,7 +13,8 @@ import java.time.LocalTime
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 class EmployeeAttendance(
-    private val manager: EmployeeManager = EmployeeManager()
+    private val manager: EmployeeManager
+
 ) {
     // -------- Login ----------
     @POST

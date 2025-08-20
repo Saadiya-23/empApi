@@ -19,3 +19,8 @@ server:
 
 logging:
   level: INFO
+
+database:
+  url: jdbc:postgresql://localhost:5432/training
+  user: postgres
+  password: postgres
