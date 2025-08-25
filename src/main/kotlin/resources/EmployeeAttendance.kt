@@ -1,5 +1,6 @@
 package resources
 
+import DTO.LoginRequest
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -8,6 +9,7 @@ import model.*
 import service.EmployeeManager
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 @Path("/api/v1")
 @Produces(MediaType.APPLICATION_JSON)
@@ -32,7 +34,7 @@ class EmployeeAttendance(
 
     @GET
     @Path("/employees/{empId}")
-    fun getEmployee(@PathParam("empId") empId: String): Response {
+    fun getEmployee(@PathParam("empId") empId: UUID): Response {
         val e = manager.getEmployee(empId)
         return if (e != null) Response.ok(e).build()
         else Response.status(Status.NOT_FOUND)
@@ -53,7 +55,7 @@ class EmployeeAttendance(
 
     @DELETE
     @Path("/employees/{empId}")
-    fun deleteEmployee(@PathParam("empId") empId: String): Response {
+    fun deleteEmployee(@PathParam("empId") empId: UUID): Response {
         return if (manager.deleteEmployee(empId))
             Response.ok(mapOf("message" to "Employee with ID $empId deleted successfully")).build()
         else
@@ -68,7 +70,7 @@ class EmployeeAttendance(
 
     @GET
     @Path("/attendance/{empId}")
-    fun getAttendance(@PathParam("empId") empId: String): List<Attendance> =
+    fun getAttendance(@PathParam("empId") empId: UUID): List<Attendance> =
         manager.listAttendanceByEmp(empId)
 
     @GET
@@ -85,12 +87,12 @@ class EmployeeAttendance(
 
     @POST
     @Path("/attendance/checkIn")
-    fun checkIn(a: Attendance): Response {
-        if (a.checkOutTime != null)
+    fun checkIn(attendance: Attendance): Response {
+        if (attendance.checkOutTime != null)
             return Response.status(Status.BAD_REQUEST)
                 .entity(mapOf("error" to "Cannot checkOut while checkIn")).build()
 
-        return if (manager.checkIn(a))
+        return if (manager.checkIn(attendance))
             Response.status(Status.CREATED).entity(mapOf("message" to "checkedIn successfully")).build()
         else
             Response.status(Status.BAD_REQUEST).entity(mapOf("error" to manager.errors)).build()
@@ -98,9 +100,9 @@ class EmployeeAttendance(
 
     @PUT
     @Path("/attendance/checkOut")
-    fun checkOut(a: Attendance): Response {
-        val ok = manager.checkOut(a.empId, a.checkInDate, a.checkOutTime ?: LocalTime.now())
-        return if (ok)
+    fun checkOut(attendance: Attendance): Response {
+        val cOut = manager.checkOut(attendance.empId, attendance.checkInDate, attendance.checkOutTime ?: LocalTime.now())
+        return if (cOut)
             Response.status(Status.CREATED).entity(mapOf("message" to "checkedOut successfully")).build()
         else
             Response.status(Status.BAD_REQUEST).entity(mapOf("error" to manager.errors)).build()

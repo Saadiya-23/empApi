@@ -10,7 +10,6 @@ repositories { mavenCentral() }
 
 dependencies {
     implementation("io.dropwizard:dropwizard-core:4.0.5")
-    // Add this line to resolve the reflection error
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.21")
     implementation("io.dropwizard:dropwizard-assets:4.0.5")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
@@ -25,7 +24,7 @@ dependencies {
 }
 
 application {
-    // If your main() is in src/main/kotlin/app/AttendanceApplication.kt
+
     mainClass.set("ApplicationKt")
 }
 

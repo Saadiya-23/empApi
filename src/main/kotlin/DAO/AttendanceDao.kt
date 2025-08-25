@@ -1,13 +1,14 @@
 package DAO
 
 import model.Attendance
-import model.WorkingHoursSummary
+import DTO.WorkingHoursSummary
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.customizer.BindBean
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 interface AttendanceDAO {
 
@@ -30,22 +31,22 @@ interface AttendanceDAO {
     """
     )
     fun updateCheckOut(
-        @Bind("empId") empId: String,
+        @Bind("empId") empId: UUID,
         @Bind("date") date: LocalDate,
         @Bind("time") time: LocalTime
     ): Boolean
 
-    @SqlQuery("SELECT count(*) FROM attendances WHERE emp_id = :empId AND check_in_date = :date AND check_out_time IS NULL")
-    fun hasActiveCheckIn(@Bind("empId") empId: String, @Bind("date") date: LocalDate): Boolean
+    @SqlQuery("SELECT EXISTS (SELECT 1 FROM attendances WHERE emp_id = :empId AND check_in_date = :date AND check_out_time IS NULL)")
+    fun hasActiveCheckIn(@Bind("empId") empId: UUID, @Bind("date") date: LocalDate): Boolean
 
     @SqlQuery("SELECT emp_id, check_in_date, check_in_time, check_out_time FROM attendances ORDER BY emp_id, check_in_date, check_in_time")
     fun listAll(): List<Attendance>
 
     @SqlQuery("SELECT emp_id, check_in_date, check_in_time, check_out_time FROM attendances WHERE emp_id = :empId ORDER BY check_in_date, check_in_time")
-    fun listByEmpId(@Bind("empId") empId: String): List<Attendance>
+    fun listByEmpId(@Bind("empId") empId: UUID): List<Attendance>
 
     @SqlUpdate("DELETE FROM attendances WHERE emp_id = :empId")
-    fun deleteByEmpId(@Bind("empId") empId: String): Boolean
+    fun deleteByEmpId(@Bind("empId") empId: UUID): Boolean
 
     @SqlQuery(
         """

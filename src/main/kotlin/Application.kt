@@ -38,9 +38,7 @@ class AttendanceApplication : Application<AttendanceConfiguration>() {
         val employeeDAO = jdbi.onDemand(EmployeeDAO::class.java)
         val attendanceDAO = jdbi.onDemand(AttendanceDAO::class.java)
 
-
         val employeeManager = EmployeeManager(employeeDAO, attendanceDAO)
-
         environment.jersey().register(EmployeeAttendance(employeeManager))
     }
 }

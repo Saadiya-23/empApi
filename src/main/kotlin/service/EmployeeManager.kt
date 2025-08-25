@@ -1,44 +1,50 @@
 package service
 
+import model.Department
+import model.Role
 import DAO.AttendanceDAO
 import DAO.EmployeeDAO
 import model.Attendance
 import model.Employee
-import model.LoginRequest
+import DTO.LoginRequest
 import java.time.LocalDate
 import java.time.LocalTime
-
+import java.util.UUID
 class EmployeeManager(
     private val employeeDAO: EmployeeDAO,
     private val attendanceDAO: AttendanceDAO
 ) {
     var errors: String = ""
-    companion object{
-        var nextEmpId:Int=100
-    }
+
 
     fun addEmployee(employee: Employee): Boolean {
         errors = ""
         if (employee.firstName.isBlank()) errors += "First Name cannot be blank. "
         if (employee.lastName.isBlank()) errors += "Last Name cannot be blank. "
         if (employee.password.isBlank()) errors += "Password cannot be blank. "
+        if (Role.entries.toTypedArray().none { it == employee.role }) {
+            errors += "Invalid Role. "
+        }
+        if (Department.entries.toTypedArray().none { it == employee.dept }) {
+            errors += "Invalid Department. "
+        }
         if (errors.isNotBlank()) return false
 
-        if (employee.id.isNullOrBlank()) {
-            employee.id = "PQ${nextEmpId++}"
+        if (employee.id==null) {
+            employee.id = UUID.randomUUID()
         }
         return employeeDAO.insert(employee)
     }
 
-    fun deleteEmployee(empId: String): Boolean {
+    fun deleteEmployee(empId: UUID): Boolean {
         return employeeDAO.delete(empId)
     }
 
     fun getAllEmployees() = employeeDAO.findAll()
 
-    fun isEmployeeExist(empId:String) = employeeDAO.findById(empId) != null
+    fun isEmployeeExist(empId:UUID) = employeeDAO.findById(empId) != null
 
-    fun getEmployee(empId: String) = employeeDAO.findById(empId)
+    fun getEmployee(empId: UUID) = employeeDAO.findById(empId)
 
     fun validateLogin(req: LoginRequest) =
         employeeDAO.validateLogin(req.firstName, req.password)
@@ -55,7 +61,7 @@ class EmployeeManager(
     fun checkIn(attendance: Attendance): Boolean {
         errors = ""
         val empId = attendance.empId
-        if (empId.isNullOrBlank()) errors += "Employee Id missing. "
+        if (empId==null) errors += "Employee Id missing. "
         val date = attendance.checkInDate ?: LocalDate.now()
         val time = attendance.checkInTime ?: LocalTime.now()
 
@@ -73,7 +79,7 @@ class EmployeeManager(
         return attendanceDAO.insertCheckIn(attendance)
     }
 
-    fun checkOut(empId: String?, checkInDate: LocalDate?, checkOutTime: LocalTime?): Boolean {
+    fun checkOut(empId: UUID?, checkInDate: LocalDate?, checkOutTime: LocalTime?): Boolean {
         errors = ""
         val id = empId ?: run { errors = "Employee Id missing. "; return false }
         if (!isEmployeeExist(empId))
@@ -90,9 +96,9 @@ class EmployeeManager(
 
     fun listAllAttendance() = attendanceDAO.listAll()
 
-    fun listAttendanceByEmp(empId: String) = attendanceDAO.listByEmpId(empId)
+    fun listAttendanceByEmp(empId: UUID) = attendanceDAO.listByEmpId(empId)
 
-    fun workingHoursSummary(from: LocalDate, to: LocalDate): Map<String,String> {
+    fun workingHoursSummary(from: LocalDate, to: LocalDate): Map<UUID,String> {
         val summaryList = attendanceDAO.workingHoursSummary(from, to)
         return summaryList.associate { it.empId to it.total }
     }

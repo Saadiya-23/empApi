@@ -1,6 +1,8 @@
-package model
+package DTO
+
+import java.util.UUID
 
 data class WorkingHoursSummary(
-    val empId: String,
+    val empId: UUID,
     val total: String
 )

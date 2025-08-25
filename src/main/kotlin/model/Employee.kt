@@ -2,7 +2,7 @@ package model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-
+import java.util.UUID
 
 enum class Department {
     IT,
@@ -20,7 +20,7 @@ enum class Role {
 
 data class Employee @JsonCreator constructor(
     @JsonProperty("id", required = false)
-    var id: String? = null,
+    var id: UUID? = null,
     @JsonProperty("firstName")
     val firstName: String,
     @JsonProperty("lastName")
@@ -32,5 +32,5 @@ data class Employee @JsonCreator constructor(
     @JsonProperty("dept")
     val dept: Department,
     @JsonProperty("reportingTo")
-    val reportingTo: String?
+    val reportingTo: UUID?
 )
